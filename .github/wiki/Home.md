@@ -1,4 +1,5 @@
-Welcome to the onefetch's wiki!
+Welcome to the onefetch's wiki!  
+Enjoy fillng your `history` with a fresh new command!
 
 - **[Home](https://github.com/o2sh/onefetch/wiki)**
 - **General**
