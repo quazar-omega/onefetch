@@ -17,3 +17,13 @@ jobs:
       - uses: spenserblack/actions-wiki@v0.1
         with:
           token: ${{ secrets.WIKI_TOKEN }}
+      - name: sanity-check
+        shell: bash
+        run: |
+          if [ "$THING" != "" ]; then
+            echo $THING
+          else
+            echo "You are a dum dum"
+          fi
+        env:
+          THING: ${{ secrets.WIKI_TOKEN }}
