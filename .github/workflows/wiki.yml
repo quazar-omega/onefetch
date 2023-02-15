@@ -13,11 +13,9 @@ jobs:
     name: Sync Wiki
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: spenserblack/actions-wiki@v0.1
-        with:
-          token: ${{ secrets.WIKI_TOKEN }}
       - name: sanity-check
+        env:
+          THING: ${{ secrets.WIKI_TOKEN }}
         shell: bash
         run: |
           if [ "$THING" != "" ]; then
@@ -25,5 +23,7 @@ jobs:
           else
             echo "You are a dum dum"
           fi
-        env:
-          THING: ${{ secrets.WIKI_TOKEN }}
+      - uses: actions/checkout@v3
+      - uses: spenserblack/actions-wiki@v0.1
+        with:
+          token: ${{ secrets.WIKI_TOKEN }}
