@@ -4,8 +4,8 @@ use crate::{
     cli::NumberSeparator,
     info::{
         format_number,
-        git::Commits,
-        info_field::{InfoField, InfoType},
+        utils::git::Commits,
+        utils::info_field::{InfoField, InfoType},
     },
 };
 
@@ -34,7 +34,7 @@ impl InfoField for CommitsInfo {
         format!(
             "{}{}",
             format_number(self.number_of_commits, self.number_separator),
-            self.is_shallow.then(|| " (shallow)").unwrap_or_default()
+            self.is_shallow.then_some(" (shallow)").unwrap_or_default()
         )
     }
 

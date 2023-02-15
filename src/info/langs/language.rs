@@ -1,6 +1,7 @@
-use crate::info::info_field::{InfoField, InfoType};
+use crate::info::utils::info_field::{InfoField, InfoType};
 use owo_colors::OwoColorize;
 use serde::Serialize;
+use tokei;
 
 include!(concat!(env!("OUT_DIR"), "/language.rs"));
 
@@ -26,12 +27,24 @@ pub struct LanguagesInfo {
 
 impl LanguagesInfo {
     pub fn new(
-        languages: Vec<(Language, f64)>,
+        loc_by_language: &[(Language, usize)],
         true_color: bool,
         number_of_languages: usize,
         info_color: DynColors,
     ) -> Self {
-        let languages_with_percentage = languages
+        let total: usize = loc_by_language.iter().map(|(_, v)| v).sum();
+
+        let weight_by_language: Vec<(Language, f64)> = loc_by_language
+            .iter()
+            .map(|(k, v)| {
+                let mut val = *v as f64;
+                val /= total as f64;
+                val *= 100_f64;
+                (*k, val)
+            })
+            .collect();
+
+        let languages_with_percentage = weight_by_language
             .into_iter()
             .map(|(language, percentage)| LanguageWithPercentage {
                 language,
@@ -113,7 +126,7 @@ impl std::fmt::Display for LanguagesInfo {
             let language_str = format!(
                 "{} {} ",
                 circle,
-                format!("{} ({} %)", language, formatted_number).color(self.info_color)
+                format!("{language} ({formatted_number} %)").color(self.info_color)
             );
             if i % 2 == 0 {
                 let _ = write!(
@@ -127,7 +140,7 @@ impl std::fmt::Display for LanguagesInfo {
                 languages_info.push_str(language_str.trim_end());
             }
         }
-        write!(f, "{}", languages_info)
+        write!(f, "{languages_info}")
     }
 }
 
@@ -151,6 +164,27 @@ impl InfoField for LanguagesInfo {
     fn should_color(&self) -> bool {
         false
     }
+}
+
+/// Counts the lines-of-code of a tokei `Language`. Takes into
+/// account that a prose language's comments *are* its code.
+pub fn loc(language_type: &tokei::LanguageType, language: &tokei::Language) -> usize {
+    __loc(language_type, language)
+        + language
+            .children
+            .iter()
+            .fold(0, |sum, (lang_type, reports)| {
+                sum + reports
+                    .iter()
+                    .fold(0, |sum, report| sum + stats_loc(lang_type, &report.stats))
+            })
+}
+
+/// Counts the lines-of-code of a tokei `Report`. This is the child of a
+/// `tokei::CodeStats`.
+pub fn stats_loc(language_type: &tokei::LanguageType, stats: &tokei::CodeStats) -> usize {
+    let stats = stats.summarise();
+    __stats_loc(language_type, &stats)
 }
 
 #[cfg(test)]

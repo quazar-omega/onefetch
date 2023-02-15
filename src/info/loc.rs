@@ -1,10 +1,12 @@
+use crate::info::langs::get_total_loc;
+use crate::info::langs::language::Language;
 use serde::Serialize;
 
 use crate::{
     cli::NumberSeparator,
     info::{
         format_number,
-        info_field::{InfoField, InfoType},
+        utils::info_field::{InfoField, InfoType},
     },
 };
 
@@ -17,7 +19,8 @@ pub struct LocInfo {
 }
 
 impl LocInfo {
-    pub fn new(lines_of_code: usize, number_separator: NumberSeparator) -> Self {
+    pub fn new(loc_by_language: &[(Language, usize)], number_separator: NumberSeparator) -> Self {
+        let lines_of_code = get_total_loc(loc_by_language);
         Self {
             lines_of_code,
             number_separator,

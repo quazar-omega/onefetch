@@ -1,23 +1,23 @@
-use self::git::Commits;
-use self::info_field::{InfoField, InfoType};
+use self::author::AuthorsInfo;
+use self::commits::CommitsInfo;
+use self::contributors::ContributorsInfo;
+use self::created::CreatedInfo;
+use self::dependencies::DependenciesInfo;
+use self::description::DescriptionInfo;
+use self::head::HeadInfo;
 use self::langs::language::Language;
 use self::langs::language::LanguagesInfo;
-use self::repo::author::AuthorsInfo;
-use self::repo::commits::CommitsInfo;
-use self::repo::contributors::ContributorsInfo;
-use self::repo::created::CreatedInfo;
-use self::repo::dependencies::DependenciesInfo;
-use self::repo::description::DescriptionInfo;
-use self::repo::head::HeadInfo;
-use self::repo::last_change::LastChangeInfo;
-use self::repo::license::LicenseInfo;
-use self::repo::loc::LocInfo;
-use self::repo::pending::PendingInfo;
-use self::repo::project::ProjectInfo;
-use self::repo::size::SizeInfo;
-use self::repo::url::UrlInfo;
-use self::repo::version::VersionInfo;
+use self::last_change::LastChangeInfo;
+use self::license::LicenseInfo;
+use self::loc::LocInfo;
+use self::pending::PendingInfo;
+use self::project::ProjectInfo;
+use self::size::SizeInfo;
 use self::title::Title;
+use self::url::UrlInfo;
+use self::utils::git::Commits;
+use self::utils::info_field::{InfoField, InfoType};
+use self::version::VersionInfo;
 use crate::cli::{is_truecolor_terminal, Config, NumberSeparator, When};
 use crate::ui::get_ascii_colors;
 use crate::ui::text_colors::TextColors;
@@ -28,11 +28,24 @@ use owo_colors::{DynColors, OwoColorize, Style};
 use serde::Serialize;
 use std::path::Path;
 
-mod git;
-pub mod info_field;
+mod author;
+mod commits;
+mod contributors;
+mod created;
+mod dependencies;
+mod description;
+mod head;
 pub mod langs;
-mod repo;
-pub mod title;
+mod last_change;
+mod license;
+mod loc;
+mod pending;
+mod project;
+mod size;
+mod title;
+mod url;
+pub mod utils;
+mod version;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -101,13 +114,13 @@ impl Info {
         let git_repo = git_repository::discover(&config.input)?;
         let repo_path = get_work_dir(&git_repo)?;
 
-        let languages_handle = std::thread::spawn({
+        let loc_by_language_sorted_handle = std::thread::spawn({
             let ignored_directories = config.exclude.clone();
             let language_types = config.r#type.clone();
             let include_hidden = config.include_hidden;
             let workdir = repo_path.clone();
             move || {
-                langs::get_language_statistics(
+                langs::get_loc_by_language_sorted(
                     &workdir,
                     &ignored_directories,
                     &language_types,
@@ -116,11 +129,11 @@ impl Info {
             }
         });
 
-        let (languages, lines_of_code) = languages_handle
+        let loc_by_language = loc_by_language_sorted_handle
             .join()
             .ok()
             .context("BUG: panic in language statistics thread")??;
-        let dominant_language = langs::get_dominant_language(&languages);
+        let dominant_language = langs::get_main_language(&loc_by_language);
         let true_color = match config.true_color {
             When::Always => true,
             When::Never => false,
@@ -165,7 +178,7 @@ impl Info {
         )?;
         let created = CreatedInfo::new(config.iso_time, &commits);
         let languages = LanguagesInfo::new(
-            languages,
+            &loc_by_language,
             true_color,
             config.number_of_languages,
             text_colors.info,
@@ -176,7 +189,7 @@ impl Info {
         let contributors =
             ContributorsInfo::new(&commits, config.number_of_authors, config.number_separator);
         let commits = CommitsInfo::new(&commits, config.number_separator);
-        let lines_of_code = LocInfo::new(lines_of_code, config.number_separator);
+        let lines_of_code = LocInfo::new(&loc_by_language, config.number_separator);
 
         let info_fields: Vec<Box<dyn InfoField>> = vec![
             Box::new(project),

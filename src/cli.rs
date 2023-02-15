@@ -1,5 +1,5 @@
-use crate::info::info_field::InfoType;
 use crate::info::langs::language::{Language, LanguageType};
+use crate::info::utils::info_field::InfoType;
 use crate::ui::printer::SerializationFormat;
 use anyhow::Result;
 use clap::builder::PossibleValuesParser;
@@ -31,7 +31,7 @@ pub struct Config {
     ///
     /// For example:
     ///
-    /// '--ascii-input "$(fortune | cowsay -W 25)"
+    /// '--ascii-input "$(fortune | cowsay -W 25)"'
     #[arg(long, value_name = "STRING", value_hint = ValueHint::CommandString)]
     pub ascii_input: Option<String>,
     /// Which LANGUAGE's ascii art to print
@@ -199,7 +199,7 @@ impl Default for Config {
 
 pub fn print_supported_languages() -> Result<()> {
     for l in Language::iter() {
-        println!("{}", l);
+        println!("{l}");
     }
 
     Ok(())
@@ -207,7 +207,7 @@ pub fn print_supported_languages() -> Result<()> {
 
 pub fn print_supported_package_managers() -> Result<()> {
     for p in ManifestType::iter() {
-        println!("{}", p);
+        println!("{p}");
     }
 
     Ok(())
