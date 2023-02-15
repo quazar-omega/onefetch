@@ -13,3 +13,6 @@ Enjoy fillng your `history` with a fresh new command!
   - [Images in the terminal](https://github.com/o2sh/onefetch/wiki/Images-in-the-terminal)
 - **Ascii**
   - [Ascii art](https://github.com/o2sh/onefetch/wiki/ascii-art)
+
+
+Maybe add it to your `.bashrc` as wel- wait actally that doesn't make too much sense
