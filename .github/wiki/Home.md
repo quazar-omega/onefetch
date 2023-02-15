@@ -1,5 +1,7 @@
 Welcome to the onefetch's wiki!  
-Enjoy fillng your `history` with a fresh new command!
+Enjoy fillng your `history` with a fresh new command!  
+# Do it.
+<sup>Do it now</sup>
 
 - **[Home](https://github.com/o2sh/onefetch/wiki)**
 - **General**
